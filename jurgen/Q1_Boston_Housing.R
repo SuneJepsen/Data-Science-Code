@@ -9,7 +9,7 @@ library(corrplot)
 
 #head(Boston)
 #str(Boston)
-#summary(Boston)
+summary(Boston)
 
 # Load Boston data set
 data("Boston")
@@ -28,12 +28,12 @@ summary(Boston)
 # Set random number generator in R
 set.seed(1234)
 
-# Create training data
+# Create training data - 70% training  data and 30% test data
 train <- sample(1:dim(Boston)[1], dim(Boston)[1]*.7, rep=FALSE)
 
-# Create test data (-train means all train data with negative sign)
+# Create test data (-train means all not all train data)
  test <- -train
- 
+  
 # Add training data to variable
 Boston.train <- Boston[train, ]
 
