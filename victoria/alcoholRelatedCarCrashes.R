@@ -1,6 +1,5 @@
-
-setwd("~/DataScienceAssignments2017/AssignmentVictoria/")
-
+getwd()
+setwd("../../../Source/Repos/DataScienceAssignments2017/AssignmentVictoria/")
 #library(gdata)
 library(xlsx)
 library(MASS)
@@ -80,11 +79,11 @@ exp(socio_ci)
 # Find association between each potential confounder and BAC by doing a general logistic model
 
 # Age and BAC
-bac_age <- glm(formula = BAC ~ Age, data = data)
+bac_age <- glm(formula = Age ~ BAC, data = data)
 summary(bac_age)
 
 # Gender and BAC
-bac_gender <- glm(formula = BAC ~ Gender, data = data)
+bac_gender <- glm(formula = Gender ~ BAC, family = "binomial", data = data)
 summary(bac_gender)
 
 # There is a significant association between age and BAC, and between gender and BAC. 
@@ -151,9 +150,10 @@ exp(adjusted_ci)
 ######################################################################
 
 # Unadjusted model
-plot(data$BAC, fitted.values(accident_bac))
+colnames("BAC","Probability of accident")
+plot(data$BAC, fitted.values(accident_bac), xlab = "BAC", ylab = "Probability of Accident")
 # Adjusted model
-plot(data$BAC, fitted.values(accident_bac_adjusted))
+plot(data$BAC, fitted.values(accident_bac_adjusted), xlab = "BAC", ylab = "Probability of Accident")
 
 # The unadjusted plot shows that the model is perfectly fittet to only BAC
 # The adjusted plot shows that the model is not perfectly fittet to BAC, because the fit also depend on other variables
@@ -164,15 +164,14 @@ plot(data$BAC, fitted.values(accident_bac_adjusted))
 # 30 and 40 years later? Is this change linear?                  #
 ##################################################################
 summary(accident_bac_adjusted)
-
 accident_predict = function(x) {
   years_0 <- data.frame(BAC = 0.0, Age = x, Gender = "Male")
   years_1 <- data.frame(BAC = 1.0, Age = x, Gender = "Male")
-  result <- 1-(predict(accident_bac_adjusted, years_0, type="response")[1] + predict(accident_bac_adjusted, years_1, type="response")[1])  
+  result <- 1-(predict(accident_bac_adjusted, years_0, type="response") + predict(accident_bac_adjusted, years_1, type="response"))  
   return(result)
 }
 
-age <- c(40,50,60,70)
+age <- c(40,50,60,70,80)
 p1 <- accident_predict(40)
 p1
 p2 <- accident_predict(50)
@@ -183,7 +182,7 @@ p4 <- accident_predict(70)
 p4
 p5 <- accident_predict(80)
 p5
-accident <- c(p1-p2,p2-p3,p3-p4,p4-p5)
+accident <- c(p1,p2,p3,p4,p5)
 plot(age,accident)
 
 # The 
