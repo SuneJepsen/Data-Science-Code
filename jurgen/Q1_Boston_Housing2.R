@@ -4,7 +4,7 @@ library(corrplot)
 #######################
 # Logistic regression
 #######################
-# ressource: https://rpubs.com/datascientiest/248183
+
 #?Boston
 #max(Boston$crim)
 #head(Boston)
@@ -15,13 +15,13 @@ summary(Boston)
 data("Boston")
 
 # Create list with same size as crime coloum with all zeros
-crim01 <- rep(0, length(Boston$crim))
+iscrime <- rep(0, length(Boston$crim))
 
 # Insert 1's where crime is over median 
-crim01[Boston$crim > median(Boston$crim)] <- 1
+iscrime[Boston$crim > median(Boston$crim)] <- 1
 
-# Add crim01 coloum to Boston dataset
-Boston <- data.frame(Boston, crim01)
+# Add iscrime coloum to Boston dataset
+Boston <- data.frame(Boston, iscrime)
 
 summary(Boston)
 
@@ -33,26 +33,26 @@ train <- sample(1:dim(Boston)[1], dim(Boston)[1]*.7, rep=FALSE)
 
 # Create test data (-train means all not all train data)
 test <- -train
-  
+
 # Add training data to variable
 Boston.train <- Boston[train, ]
 
 # Add test data to variable (all data which is not train)
 Boston.test <- Boston[test, ]
 
-# From the the crime data, add the only test data to crim01.test variable
-crim01.test <- crim01[test]
+# From the the crime data, add the only test data to iscrime.test variable
+iscrime.test <- iscrime[test]
 
 # Generate logistic regression model
 # GLM Parameter explaination
-  # crim01: The variable we want to predict
-  # ~ .: all variables in Boston dataset is set as predictors 
-  # - crime01 -crim: remove crime01 and crim colums as predictors
-  # data = Boston: use Boston data set
-  # binomial: logit
-fit.glm1 <- glm(crim01 ~ . -crim, family = binomial(logit), data = Boston)
-#fit.glm1 <- glm(crim01 ~ -crim + zn + indus + chas + nox + rm + age + dis + rad + tax + ptratio + black + lstat + medv + rvYes, family = binomial(logit), data = Boston)
-#fit.glm1 <- glm(crim01 ~ -crim + zn + indus + chas + nox + rm + age + dis + rad + tax + ptratio + black + lstat + medv, family = binomial(logit), data = Boston)
+# iscrime: The variable we want to predict
+# ~ .: all variables in Boston dataset is set as predictors 
+# - iscrime -crim: remove iscrime and crim colums as predictors
+# data = Boston: use Boston data set
+# binomial: logit
+fit.glm1 <- glm(iscrime ~ . -crim, family = binomial(logit), data = Boston)
+#fit.glm1 <- glm(iscrime ~ -crim + zn + indus + chas + nox + rm + age + dis + rad + tax + ptratio + black + lstat + medv + rvYes, family = binomial(logit), data = Boston)
+#fit.glm1 <- glm(iscrime ~ -crim + zn + indus + chas + nox + rm + age + dis + rad + tax + ptratio + black + lstat + medv, family = binomial(logit), data = Boston)
 probs <- predict(fit.glm1, Boston.test, type = "response")
 
 # Create list with same size as probs with all zeros 
@@ -64,35 +64,35 @@ pred.glm[probs > 0.5] <- 1
 # Confusion matrix in order to determine how many observations were correctly or incorrectly classified
 # Correct prediction: 65 suburbs with no crimes over median and 68 suburbs with crimes over median
 # wrong prediction: 15 which the model predicted to no crime had crime. 4 which the model predicted had crime which hadnt crime
-table(pred.glm, crim01.test)
+table(pred.glm, iscrime.test)
 
 # Computes the rate of misclassification (0.112)
-mean(pred.glm != crim01.test)
+mean(pred.glm != iscrime.test)
 # Summary of the models coefficients and p-values
 summary(fit.glm1)
 
 # Correlation matrix
-  # Find candidates which indicates the positive correlation on crim01
+# Find candidates which indicates the positive correlation on crime
 corrplot::corrplot.mixed(cor(Boston[, -1]), upper="circle")
 
 # Generate logistic regression model
-  # GLM Parameter explaination
-  # crim01: The variable we want to predict
-  # nox (0.72) + indus (0.6) + age (0.61) + rad (0.62): Predictors 
-  # 
-fit.glm <- glm(crim01 ~ -crim + dis + zn + nox + medv + rad + tax + ptratio + black, data = Boston.train, family = binomial)
+# GLM Parameter explaination
+# iscrime: The variable we want to predict
+# nox (0.72) + indus (0.6) + age (0.61) + rad (0.62): Predictors 
+# 
+#fit.glm <- glm(iscrime ~ -crim + dis + zn + nox + medv + rad + tax + ptratio + black, data = Boston.train, family = binomial)
 
 # 0.01
-#fit.glm <- glm(crim01 ~ dis  + nox  + rad  + ptratio, data = Boston.train, family = binomial)
+#fit.glm <- glm(iscrime ~ dis  + nox  + rad  + ptratio, data = Boston.train, family = binomial)
 
 # 0.001
-#fit.glm <- glm(crim01 ~  nox  + rad, data = Boston.train, family = binomial)
+fit.glm <- glm(iscrime ~  nox  + rad, data = Boston.train, family = binomial)
 
 summary(fit.glm)
 
 
 # Use our model and see how it predicts on Test data set 
-  # The predict function, predicts the probability for crime, given the predictors 
+# The predict function, predicts the probability for crime, given the predictors 
 probs <- predict(fit.glm, Boston.test, type = "response")
 
 # Create list with same size as probs with all zeros 
@@ -102,36 +102,36 @@ pred.glm <- rep(0, length(probs))
 pred.glm[probs > 0.5] <- 1
 
 # Confusion matrix in order to determine how many observations were correctly or incorrectly classified
-  # Correct prediction: 65 suburbs with no crimes over median and 68 suburbs with crimes over median
-  # wrong prediction: 15 which the model predicted to no crime had crime. 4 which the model predicted had crime which hadnt crime
-table(pred.glm, crim01.test)
+# Correct prediction: 65 suburbs with no crimes over median and 68 suburbs with crimes over median
+# wrong prediction: 15 which the model predicted to no crime had crime. 4 which the model predicted had crime which hadnt crime
+table(pred.glm, iscrime.test)
 
 # Computes the rate of misclassification (0.112)
-mean(pred.glm != crim01.test)
+mean(pred.glm != iscrime.test)
 
 ###############################
 # Linear discriminant analysis
 ###############################
-#crim01
+#crime
 
-#crim01 <- factor(crim01)
+#crime <- factor(crime)
 
-str(crim01)
+str(iscrime)
 # Create model
-#fit.lda <- lda(crim01 ~., data = Boston)
+#fit.lda <- lda(iscrime ~., data = Boston)
 
 #Use the p values to determine which variable to sufficient for the model training
 
 #LDA Model with the training data
 # 0.05 significants level
-#fit.lda.train <- lda(crim01 ~  dis + zn + nox + medv + rad + tax + ptratio + black, data = Boston.train)
+fit.lda.train <- lda(iscrime ~  dis + zn + nox + medv + rad + tax + ptratio + black, data = Boston.train)
 
 #0.01
-fit.lda.train <- lda(crim01 ~ -crim + dis  + nox  + rad  + ptratio, data = Boston.train)
-
+fit.lda.train <- lda(iscrime ~ -crim + dis  + nox  + rad  + ptratio, data = Boston.train)
+fit.lda.train
 #0.001
-#fit.lda.train <- lda(crim01 ~ -crim + nox  + rad, data = Boston.train )
-
+fit.lda.train <- lda(iscrime ~ -crim + nox  + rad, data = Boston.train )
+fit.lda.train
 plot(fit.lda.train)
 
 
@@ -140,10 +140,10 @@ pred.lda <- predict(fit.lda.train, Boston.test)
 
 
 # Confusion matrix
-table(pred.lda$class, crim01.test)
+table(pred.lda$class, iscrime.test)
 
 # Misclassification rate
-mean(pred.lda$class != crim01.test)
+mean(pred.lda$class != iscrime.test)
 
 
 #######
@@ -190,11 +190,11 @@ training_data = data[train, c("nox" ,  "rad")]
 testing_data = data[test, c("nox" ,  "rad")]
 
 
-# Add crime01 to train.crim01
-train.crim01 = Boston$crim01[train]
+# Add iscrime to train.iscrime
+train.iscrime = Boston$iscrime[train]
 
-# Add crime01 to test.crime01
-test.crim01= Boston$crim01[test]
+# Add iscrime to test.iscrime
+test.iscrime= Boston$iscrime[test]
 
 # Create list for accuracy for each K
 acc_ls <- list()
@@ -218,9 +218,9 @@ accuracy  <- function(x,y){
 k <- 1:35
 error_rate = NULL
 for(i in k){
-  pred_k <- knn(Boston.train[,2:14], Boston.test[,2:14], train.crim01, i)
-  acc_ls[i] <- accuracy(pred_k,test.crim01)
- 
+  pred_k <- knn(Boston.train[,2:14], Boston.test[,2:14], train.iscrime, i)
+  acc_ls[i] <- accuracy(pred_k,test.iscrime)
+  
 }
 
 # Average of all accuracies
@@ -230,11 +230,12 @@ mean(unlist(acc_ls))
 plot(k,acc_ls)
 
 # KNN training in respect to subset and k.
-  # From the prediction of finding the best k with best accuracy, we get k=3 and k=5
-  # The outcome is a prediction model on the testting_data
-knn_pred_y = knn(training_data, testing_data, train.crime01, k = 5)
+# From the prediction of finding the best k with best accuracy, we get k=3 and k=5
+# The outcome is a prediction model on the testting_data
+knn_pred_y = knn(training_data, testing_data, train.iscrime, k = 5)
 
-table(knn_pred_y, test.crime01)
+table(knn_pred_y, test.iscrime)
 
 # For this KNN (k=3), we have a test error rate of ...
-mean(knn_pred_y != test.crime01)
+mean(knn_pred_y != test.iscrime)
+
